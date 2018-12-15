@@ -1,0 +1,5 @@
+
+*********************************************
+Framework is connecting to database and the code is placed in the java configuration file BPMEngineConfig.java
+which uses BasicDataSource to connect to database. The database properties are mentioned in the application-build.yml
+***********************************************
