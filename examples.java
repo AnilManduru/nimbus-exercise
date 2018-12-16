@@ -69,4 +69,61 @@ process:
   history:
     level: 
       none         
+	  
+	  
+***************************************************************************
+
+Spring framework provides a interface MongoOperations to interact with the Mongodatabase
+
+import org.springframework.data.mongodb.core.MongoOperations;
+
+
+Below are the code snippets of getting data from the Mongo database
+
+@Override
+	public <T> Object search(Class<T> referredClass, String alias, SearchCriteria<?> criteria) {
+		Query query = buildQuery(referredClass, alias, criteria.getWhere());
+		
+		if(StringUtils.equalsIgnoreCase(criteria.getAggregateCriteria(),Constants.SEARCH_REQ_AGGREGATE_COUNT.code)){
+			return getMongoOps().count(query, referredClass, alias);
+		}
+		
+		if(criteria.getProjectCriteria() != null && StringUtils.isNotBlank(criteria.getProjectCriteria().getAlias())) {
+			referredClass = (Class<T>)findOutputClass(criteria, referredClass);
+		}
+		
+		if(criteria.getPageRequest() != null) {
+			return findAllPageable(referredClass, alias, criteria.getPageRequest(), query);
+		}
+		
+		return getMongoOps().find(query, referredClass, alias);
+		
+	}
+
+	private <T> Query buildQuery(Class<?> referredClass, String alias, T criteria) {
+		if(criteria == null) 
+			return new Query();
+		
+		ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase().withIgnoreNullValues().withIgnorePaths("version");
+		
+		matcher = recurseAllFieldsAndBuildMatcher(referredClass, criteria, matcher);
+		
+		Example<T> example =  Example.of(criteria, matcher);
+		Criteria c = Criteria.byExample(example);
+		Query query = new Query(c);
+		return query;
+	}
 	
+	private <T> PageRequestAndRespone<T> findAllPageable(Class<T> referredClass, String alias, Pageable pageRequest, Query query) {
+		Query qPage = query.with(pageRequest);
+		
+		List<T> results = getMongoOps().find(qPage, referredClass, alias);
+		
+		if(CollectionUtils.isEmpty(results))
+			return null;
+		
+		return new PageRequestAndRespone<T>(results, pageRequest, () -> getMongoOps().count(query, referredClass, alias));
+		
+	}
+
+
