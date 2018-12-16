@@ -2,4 +2,12 @@
 *********************************************
 Framework is connecting to database and the code is placed in the java configuration file BPMEngineConfig.java
 which uses BasicDataSource to connect to database. The database properties are mentioned in the application-build.yml
+
+
+
+Spring framework provides a interface MongoOperations to interact with the Mongodatabase
+
+import org.springframework.data.mongodb.core.MongoOperations;
+
+
 ***********************************************
